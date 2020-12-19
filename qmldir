@@ -1,6 +1,6 @@
-module IpInput
-xxx 1.0 QtQuick_1_0/xxx.qml
-xxxDemo 1.0 QtQuick_1_0/Demo/xxxDemo.qml
+module Pagination 
+Pagination 1.0 QtQuick_1_0/Pagination.qml
+PaginationDemo 1.0 QtQuick_1_0/Demo/PaginationDemo.qml
 
-xxx 2.0 QtQuick_2_0/xxx.qml
-xxxDemo 2.0 QtQuick_2_0/Demo/xxxDemo.qml
+Pagination 2.0 QtQuick_2_0/Pagination.qml
+PaginationDemo 2.0 QtQuick_2_0/Demo/PaginationDemo.qml
