@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Author: Qt君
  * WebSite: qthub.com
  * Email: 2088201923@qq.com
@@ -7,35 +7,30 @@
  */
 import QtQuick 2.0
 
-
-import QtQuick 2.0
-
-Rectangle {
+Item {
     id: root
     property int total: 50
     property int pageIndex: 10
-    
-    anchors.verticalCenter: parent.verticalCenter
+
     width: pagination.width; height: 50
-    color: "lightblue"
-    
+
     property int itemWidth: 40
     property int itemHeight: 40
     property int itemSpacing: 10
-    property int itemRadius: 5
-    
-    property Component menu: 
+    property int itemRadius: 6
+
+    property Component menu:
     Rectangle {
         id: menuRoot
         property alias text: indication.text
         signal clicked()
-        
+
         width: root.itemWidth
         height: root.itemHeight
         radius: root.itemRadius
         border.color: mouseArea.hover ? "#1890ff" : "#d9d9d9"
         border.width: 1
-        
+
       //  Image {
       //      anchors.centerIn: parent
       //      sourceSize: Qt.size(30, 30)
@@ -49,14 +44,14 @@ Rectangle {
       //      TIuNlY4ODNjMCA2LjcgNy43IDEwLjQgMTIuOSA2LjNsNDUwLjgtMzUyLjFhMzE\
       //      uOTYgMzEuOTYgMCAwMDAtNTAuNHoiPjwvcGF0aD48L3N2Zz4="
       //  }
-        
+
         Text {
             id: indication
             anchors.centerIn: parent
             text: "<"
             color: mouseArea.hover ? parent.border.color : "black"
         }
-        
+
         MouseArea {
             id: mouseArea
             property bool hover: false
@@ -67,35 +62,35 @@ Rectangle {
             onClicked: menuRoot.clicked()
         }
     }
-    
+
     property Component item:
     Rectangle {
         id: rootItem
         property string text: ""
         property bool isSelected: false
-    
+
         signal numberClicked(int number)
         signal leftMoreClicked()
         signal rightMoreClicked()
-        
+
         width: root.itemWidth
         height: root.itemHeight
         radius: root.itemRadius
         border.color: rootItem.isSelected || mouseArea.hover ? "#1890ff" : "#d9d9d9"
         border.width: 1
-        
+
         Text {
             id: itemText
             anchors.centerIn: parent
             color: rootItem.isSelected || mouseArea.hover ? parent.border.color : "black"
-            text: isNumber(rootItem.text) ? rootItem.text : 
-                                            (mouseArea.hover ? rootItem.text : "...")
+            text: isNumber(rootItem.text) ? rootItem.text :
+                                            (mouseArea.hover ? rootItem.text : "…")
 
             function isNumber(val) {
                 return parseFloat(val).toString() != "NaN"
             }
         }
-        
+
         MouseArea {
             id: mouseArea
             property bool hover: false
@@ -103,38 +98,41 @@ Rectangle {
             hoverEnabled: true
             onEntered: hover = true
             onExited: hover = false
+            onCanceled: hover = false
             onClicked: {
-                if (text === ">>") {
+                if (rootItem.text === ">>") {
                     rootItem.rightMoreClicked()
                 }
-                else if (text == "<<") {
+                else if (rootItem.text == "<<") {
                     rootItem.leftMoreClicked()
                 }
                 else {
-                    rootItem.numberClicked(text)
+                    rootItem.numberClicked(Number(rootItem.text))
                 }
             }
         }
     }
-    
+
     property Component selection:
     Row {
         property variant listModel
         signal numberClicked(int number)
         signal leftMoreClicked()
         signal rightMoreClicked()
-        
+
         spacing: root.itemSpacing
         Repeater {
             id: repeater
             model: listModel
-            
+
             Loader {
                 sourceComponent: root.item
                 Component.onCompleted: {
                     item.text = Qt.binding(function() { return index })
-                    item.isSelected = Qt.binding(function() { return root.pageIndex === Number(index) })
-                    
+                    item.isSelected = Qt.binding(function() {
+                        console.log(root.pageIndex, index)
+                        return root.pageIndex === Number(index) })
+
                     item.rightMoreClicked.connect(rightMoreClicked)
                     item.leftMoreClicked.connect(leftMoreClicked)
                     item.numberClicked.connect(numberClicked)
@@ -142,24 +140,24 @@ Rectangle {
             }
         }
     }
-    
+
     ListModel {
         id: listModel
-        
+
         function createOne(index, isCurrentIndex=false) {
             listModel.append({"index": String(index)})
         }
-        
+
         function update(total, currentIndex) {
             listModel.clear()
             if (total <= 6) {
                 for (var i = 1; i <= 6; i++) {
                     createOne(i)
                 }
-                
+
                 return
             }
-            
+
             // do something
             if (currentIndex <= 5) {
                 for (var i = 1; i <= 5; i++) {
@@ -186,27 +184,27 @@ Rectangle {
             }
         }
     }
-    
+
     Row {
         id: pagination
         height: root.height
         spacing: root.itemSpacing
-        
+
         Loader {
             anchors.verticalCenter: parent.verticalCenter
             sourceComponent: menu
             Component.onCompleted: {
                 item.text = "<"
-                item.clicked.connect(function() { 
+                item.clicked.connect(function() {
                     if (root.pageIndex <= 1)
                         return
-                        
+
                     listModel.update(total, root.pageIndex - 1)
-                    root.pageIndex -= 1 
+                    root.pageIndex -= 1
                 })
             }
         }
-        
+
         Loader {
             id: content
             anchors.verticalCenter: parent.verticalCenter
@@ -216,35 +214,39 @@ Rectangle {
                 item.listModel = Qt.binding(function() { return listModel })
                 item.rightMoreClicked.connect(function() {
                     listModel.update(total, root.pageIndex + 3)
-                    root.pageIndex += 3 
+                    root.pageIndex += 3
                 })
-                
+
                 item.leftMoreClicked.connect(function() {
                     listModel.update(total, root.pageIndex - 3)
-                    root.pageIndex -= 3 
-                }) 
-                
+                    root.pageIndex -= 3
+                })
+
                 item.numberClicked.connect(function(number) {
+                    console.log(">>>>>>>", number)
+                    if (number == root.pageIndex)
+                        return;
+
                     listModel.update(total, number)
                     root.pageIndex = number
-                })  
+                })
             }
         }
-        
+
         Loader {
             id: rightIndication
             anchors.verticalCenter: parent.verticalCenter
             sourceComponent: menu
             Component.onCompleted: {
                 rightIndication.item.text = ">"
-                item.clicked.connect(function() { 
+                item.clicked.connect(function() {
                     if (root.pageIndex >= total)
                         return
-                        
+
                     listModel.update(total, root.pageIndex + 1)
-                    root.pageIndex += 1 
+                    root.pageIndex += 1
                 })
-                
+
             }
         }
     }
